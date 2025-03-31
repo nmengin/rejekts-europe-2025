@@ -1,0 +1,39 @@
+image:
+  pullPolicy: Always
+
+# Enable the dashboard and exposes it on the entrypoint web (port :80)
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: "Host(`dashboard.docker.localhost`)"
+    entryPoints: 
+      - "web"
+
+providers:
+  # Disable Ingress provider... we do not need it anymore ;-)
+  kubernetesIngress:
+    enabled: false
+  # Enable the GatewayAPI provider
+  # A GatewayClass will be created too
+  kubernetesGateway:
+    enabled: true
+    # BackendTLSPolicy is still experimental in Gateway API v1.2 - Standard soon (v1.3)
+    experimentalChannel: true
+
+gateway:
+  # -- When providers.kubernetesGateway.enabled, deploy a default gateway
+  enabled: true
+  # A Gateway is created by default, the following configuration adds the HTTPS Listener
+  listeners:
+    # websecure listener is disabled by default because certificateRefs needs to be added
+    websecure:
+      # -- Port is the network port. Multiple listeners may use the same port, subject to the Listener compatibility rules.
+      # The port must match a port declared in ports section.
+      port: 8443
+      # Specify expected protocol on this listener See [ProtocolType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.ProtocolType)
+      protocol: HTTPS
+      # -- Add certificates for TLS or HTTPS protocols. See [GatewayTLSConfig](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io%2fv1.GatewayTLSConfig)
+      certificateRefs:
+      - kind: Secret
+        group: ""
+        name: external-certs
